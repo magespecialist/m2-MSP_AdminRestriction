@@ -38,21 +38,21 @@ class RestrictIp extends Command
 
         if ($ranges == 'disable') {
             $this->configInterface->saveConfig(
-                'msp_adminrestriction/ip_restriction/enabled',
+                'msp_securitysuite/adminrestriction/enabled',
                 '0',
                 'default',
                 0
             );
         } else {
             $this->configInterface->saveConfig(
-                'msp_adminrestriction/ip_restriction/enabled',
+                'msp_securitysuite/adminrestriction/enabled',
                 '1',
                 'default',
                 0
             );
 
             $this->configInterface->saveConfig(
-                'msp_adminrestriction/ip_restriction/authorized_ranges',
+                'msp_adminrestriction/adminrestriction/authorized_ranges',
                 $ranges,
                 'default',
                 0
