@@ -1,6 +1,8 @@
 # MSP AdminRestriction
 
-This module permits to deny access to Magento backend from unauthorized IPs.
+Deny access to Magento backend from **unauthorized IPs**.
+
+This module represents one of the **most effective Magento backend protection policy**.
 
 > Member of **MSP Security Suite**
 >
@@ -25,7 +27,9 @@ From command line:
 If you messed up with IP list, you can disable or change authorized ip list from command-line:
 
 **Disable filter:**
+
 `php bin/magento msp:security:admin_restriction:ip disable`
 
-**Authorize your IP:**
-`php bin/magento msp:security:admin_restriction:ip 127.0.0.1`
+**Authorize a new IP list:**
+
+`php bin/magento msp:security:admin_restriction:ip 127.0.0.1,192.168.0.0/24`
