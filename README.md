@@ -16,7 +16,8 @@ Did you lock yourself out from Magento backend? <a href="https://github.com/mage
 
 From command line: 
 
-`composer require msp/adminrestriction`
+`composer require msp/adminrestriction`<br />
+`php bin/magento setup:upgrade`
 
 **2. Enable and configure from your Magento backend config**
 
