@@ -1,6 +1,6 @@
 <?php
 /**
- * IDEALIAGroup srl
+ * MageSpecialist
  *
  * NOTICE OF LICENSE
  *
@@ -10,11 +10,11 @@
  * http://opensource.org/licenses/osl-3.0.php
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
- * to info@idealiagroup.com so we can send you a copy immediately.
+ * to info@magespecialist.it so we can send you a copy immediately.
  *
  * @category   MSP
  * @package    MSP_AdminRestriction
- * @copyright  Copyright (c) 2016 IDEALIAGroup srl (http://www.idealiagroup.com)
+ * @copyright  Copyright (c) 2017 Skeeller srl (http://www.magespecialist.it)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
@@ -26,18 +26,22 @@ use MSP\AdminRestriction\Api\RestrictInterface;
 
 class Restrict implements RestrictInterface
 {
-    const XML_PATH_ENABLED = 'msp_securitysuite/adminrestriction/enabled';
-    const XML_PATH_AUTHORIZED_RANGES = 'msp_securitysuite/adminrestriction/authorized_ranges';
+    /**
+     * @var RemoteAddress
+     */
+    private $remoteAddress;
 
-    protected $remoteAddress;
-    protected $scopeConfigInterface;
+    /**
+     * @var ScopeConfigInterface
+     */
+    private $scopeConfig;
 
     public function __construct(
         RemoteAddress $remoteAddress,
-        ScopeConfigInterface $scopeConfigInterface
+        ScopeConfigInterface $scopeConfig
     ) {
         $this->remoteAddress = $remoteAddress;
-        $this->scopeConfigInterface = $scopeConfigInterface;
+        $this->scopeConfig = $scopeConfig;
     }
 
     /**
@@ -84,7 +88,7 @@ class Restrict implements RestrictInterface
      */
     public function getAllowedRanges()
     {
-        $ranges = $this->scopeConfigInterface->getValue(self::XML_PATH_AUTHORIZED_RANGES);
+        $ranges = $this->scopeConfig->getValue(RestrictInterface::XML_PATH_AUTHORIZED_RANGES);
         return preg_split('/\s*[,;]+\s*/', $ranges);
     }
 
@@ -94,7 +98,7 @@ class Restrict implements RestrictInterface
      */
     public function getEnabled()
     {
-        return (bool) $this->scopeConfigInterface->getValue(self::XML_PATH_ENABLED);
+        return (bool) $this->scopeConfig->getValue(RestrictInterface::XML_PATH_ENABLED);
     }
 
     /**
