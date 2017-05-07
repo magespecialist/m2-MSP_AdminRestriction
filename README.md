@@ -8,7 +8,7 @@ This module represents one of the **most effective Magento backend protection po
 >
 > See: https://github.com/magespecialist/m2-MSP_SecuritySuiteFull
 
-Did you lock yourself out from Magento backend? <a href="https://github.com/magespecialist/m2-MSP_AdminRestriction/new/master?readme=1#emergency-commandline-disable">click here.</a>
+Did you lock yourself out from Magento backend? <a href="https://github.com/magespecialist/m2-MSP_AdminRestriction#emergency-commandline-disable">click here.</a>
 
 ## Installing on Magento2:
 
