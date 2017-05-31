@@ -26,6 +26,8 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\HTTP\PhpEnvironment\Response;
 use MSP\AdminRestriction\Api\RestrictInterface;
+use MSP\SecuritySuiteCommon\Api\LogManagementInterface;
+use Magento\Framework\Event\ManagerInterface as EventInterface;
 
 class ControllerActionPredispatchObserver implements ObserverInterface
 {
@@ -45,14 +47,22 @@ class ControllerActionPredispatchObserver implements ObserverInterface
      */
     private $actionFlag;
 
+    /**
+     * @var EventInterface
+     */
+    private $event;
+
     public function __construct(
         RestrictInterface $restrict,
         Response $response,
-        ActionFlag $actionFlag
+        ActionFlag $actionFlag,
+        LogManagementInterface $logManagement,
+        EventInterface $event
     ) {
         $this->restrict = $restrict;
         $this->response = $response;
         $this->actionFlag = $actionFlag;
+        $this->event = $event;
     }
 
     /**
@@ -62,6 +72,13 @@ class ControllerActionPredispatchObserver implements ObserverInterface
     public function execute(Observer $observer)
     {
         if (!$this->restrict->isAllowed()) {
+            $this->event->dispatch(LogManagementInterface::EVENT_ACTIVITY, [
+                'module' => 'MSP_AdminRestriction',
+                'message' => 'Unauthorized access attempt',
+            ]);
+
+
+            // We are not creating a custom error to avoid remote malicious user to detect backend presence
             $this->response->setHttpResponseCode(403);
             $this->response->setBody('<h1>Forbidden</h1>');
             $this->response->sendResponse();
