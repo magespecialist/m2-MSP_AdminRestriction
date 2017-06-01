@@ -30,4 +30,8 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\Framework\AppInterface">
+        <plugin sortOrder="1" name="mSPAdminRestrictionAppInterface"
+                type="MSP\AdminRestriction\Plugin\AppInterfacePlugin"/>
+    </type>
 </config>
