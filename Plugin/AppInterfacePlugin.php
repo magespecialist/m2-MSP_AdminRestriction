@@ -24,6 +24,7 @@ use Magento\Framework\App\State;
 use Magento\Framework\AppInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Response\Http;
+use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\UrlInterface;
 use MSP\AdminRestriction\Api\RestrictInterface;
 use MSP\SecuritySuiteCommon\Api\LogManagementInterface;
@@ -61,11 +62,16 @@ class AppInterfacePlugin
      * @var RestrictInterface
      */
     private $restrict;
+
     /**
      * @var UtilsInterface
      */
     private $utils;
 
+    /**
+     * @var ObjectManagerInterface
+     */
+    private $objectManager;
 
     public function __construct(
         RequestInterface $request,
@@ -74,7 +80,8 @@ class AppInterfacePlugin
         State $state,
         EventInterface $event,
         RestrictInterface $restrict,
-        UtilsInterface $utils
+        UtilsInterface $utils,
+        ObjectManagerInterface $objectManager
     ) {
         $this->request = $request;
         $this->http = $http;
@@ -83,6 +90,7 @@ class AppInterfacePlugin
         $this->restrict = $restrict;
         $this->event = $event;
         $this->utils = $utils;
+        $this->objectManager = $objectManager;
     }
 
     public function aroundLaunch(AppInterface $subject, \Closure $proceed)
@@ -95,9 +103,12 @@ class AppInterfacePlugin
                 ]);
 
                 $this->state->setAreaCode('frontend');
-                $this->http->setRedirect($this->url->getUrl('msp_security_suite/stop', [
-                    'reason' => 'Unauthorized access attempt',
-                ]));
+
+                // Must use object manager because a session cannot be activated before setting area
+                $this->objectManager->get('MSP\SecuritySuiteCommon\Api\SessionInterface')
+                    ->setEmergencyStopMessage(__('Unauthorized access attempt'));
+
+                $this->http->setRedirect($this->url->getUrl('msp_security_suite/stop'));
                 return $this->http;
             }
         }

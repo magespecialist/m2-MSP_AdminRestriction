@@ -3,9 +3,7 @@
     "description": "Magento2 Admin IP based restriction - Member of MageSpecialist SecuritySuite",
     "require": {
         "php": "~7.0.0",
-        "msp/common": "*",
-        "msp/security-suite-common": ">=1.0.3",
-        
+        "msp/security-suite-common": "^1.2",
         "magento/magento-composer-installer": "*"
     },
     "suggest": {

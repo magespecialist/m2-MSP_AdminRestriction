@@ -22,9 +22,21 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
-        <section id="msp_securitysuite">
-            <group id="adminrestriction" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>Backend IP Restriction</label>
+
+        <section id="msp_securitysuite_adminrestriction" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Backend IP restriction</label>
+            <tab>msp_securitysuite</tab>
+            <resource>MSP_SecuritySuite::config</resource>
+
+            <group id="general" translate="label" type="text" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+                <comment><![CDATA[
+                    <div class="msp_securitysuite-comment">
+                        This module is a memeber of <strong><a target="_blank" href="https://github.com/magespecialist/m2-MSP_Security_Suite">MageSpecialist Security Suite</a></strong>. <a target="_blank" href="https://github.com/magespecialist/m2-MSP_Security_Suite">Click here</a> to see all the Security Suite modules.<br />
+                        Source code, installation and configuration guide: <a target="_blank" href="https://github.com/magespecialist/m2-MSP_Security_Suite">https://github.com/magespecialist/m2-MSP_Security_Suite</a>.
+                    </div>
+                ]]></comment>
                 <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

@@ -22,8 +22,8 @@ namespace MSP\AdminRestriction\Api;
 
 interface RestrictInterface
 {
-    const XML_PATH_ENABLED = 'msp_securitysuite/adminrestriction/enabled';
-    const XML_PATH_AUTHORIZED_RANGES = 'msp_securitysuite/adminrestriction/authorized_ranges';
+    const XML_PATH_ENABLED = 'msp_securitysuite_adminrestriction/general/enabled';
+    const XML_PATH_AUTHORIZED_RANGES = 'msp_securitysuite_adminrestriction/general/authorized_ranges';
 
     /**
      * Return true if current user is allowed to access backend
