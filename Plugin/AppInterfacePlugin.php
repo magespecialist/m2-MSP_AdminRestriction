@@ -23,10 +23,8 @@ namespace MSP\AdminRestriction\Plugin;
 use Magento\Framework\App\State;
 use Magento\Framework\AppInterface;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\App\Response\Http;
-use Magento\Framework\ObjectManagerInterface;
-use Magento\Framework\UrlInterface;
 use MSP\AdminRestriction\Api\RestrictInterface;
+use MSP\SecuritySuiteCommon\Api\LockDownInterface;
 use MSP\SecuritySuiteCommon\Api\LogManagementInterface;
 use Magento\Framework\Event\ManagerInterface as EventInterface;
 use MSP\SecuritySuiteCommon\Api\UtilsInterface;
@@ -37,16 +35,6 @@ class AppInterfacePlugin
      * @var RequestInterface
      */
     private $request;
-
-    /**
-     * @var Http
-     */
-    private $http;
-
-    /**
-     * @var UrlInterface
-     */
-    private $url;
 
     /**
      * @var State
@@ -69,28 +57,24 @@ class AppInterfacePlugin
     private $utils;
 
     /**
-     * @var ObjectManagerInterface
+     * @var LockDownInterface
      */
-    private $objectManager;
+    private $lockDown;
 
     public function __construct(
         RequestInterface $request,
-        Http $http,
-        UrlInterface $url,
         State $state,
         EventInterface $event,
         RestrictInterface $restrict,
         UtilsInterface $utils,
-        ObjectManagerInterface $objectManager
+        LockDownInterface $lockDown
     ) {
         $this->request = $request;
-        $this->http = $http;
-        $this->url = $url;
         $this->state = $state;
         $this->restrict = $restrict;
         $this->event = $event;
         $this->utils = $utils;
-        $this->objectManager = $objectManager;
+        $this->lockDown = $lockDown;
     }
 
     public function aroundLaunch(AppInterface $subject, \Closure $proceed)
@@ -103,13 +87,7 @@ class AppInterfacePlugin
                 ]);
 
                 $this->state->setAreaCode('frontend');
-
-                // Must use object manager because a session cannot be activated before setting area
-                $this->objectManager->get('MSP\SecuritySuiteCommon\Api\SessionInterface')
-                    ->setEmergencyStopMessage(__('Unauthorized access attempt'));
-
-                $this->http->setRedirect($this->url->getUrl('msp_security_suite/stop'));
-                return $this->http;
+                return $this->lockDown->doHttpLockdown(__('Unauthorized access attempt'));
             }
         }
 
