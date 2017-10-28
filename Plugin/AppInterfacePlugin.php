@@ -20,14 +20,13 @@
 
 namespace MSP\AdminRestriction\Plugin;
 
+use Magento\Framework\App\DeploymentConfig;
 use Magento\Framework\App\State;
 use Magento\Framework\AppInterface;
 use Magento\Framework\App\RequestInterface;
 use MSP\AdminRestriction\Api\RestrictInterface;
 use MSP\SecuritySuiteCommon\Api\LockDownInterface;
-use MSP\SecuritySuiteCommon\Api\LogManagementInterface;
-use Magento\Framework\Event\ManagerInterface as EventInterface;
-use MSP\SecuritySuiteCommon\Api\UtilsInterface;
+use MSP\SecuritySuiteCommon\Api\AlertInterface;
 
 class AppInterfacePlugin
 {
@@ -42,49 +41,90 @@ class AppInterfacePlugin
     private $state;
 
     /**
-     * @var EventInterface
-     */
-    private $event;
-
-    /**
      * @var RestrictInterface
      */
     private $restrict;
-
-    /**
-     * @var UtilsInterface
-     */
-    private $utils;
 
     /**
      * @var LockDownInterface
      */
     private $lockDown;
 
+    /**
+     * @var DeploymentConfig
+     */
+    private $deploymentConfig;
+
+    /**
+     * @var AlertInterface
+     */
+    private $securitySuite;
+
     public function __construct(
         RequestInterface $request,
         State $state,
-        EventInterface $event,
         RestrictInterface $restrict,
-        UtilsInterface $utils,
+        DeploymentConfig $deploymentConfig,
+        AlertInterface $securitySuite,
         LockDownInterface $lockDown
     ) {
         $this->request = $request;
         $this->state = $state;
         $this->restrict = $restrict;
-        $this->event = $event;
-        $this->utils = $utils;
         $this->lockDown = $lockDown;
+        $this->deploymentConfig = $deploymentConfig;
+        $this->securitySuite = $securitySuite;
     }
 
+    /**
+     * Return true if $uri is a backend URI
+     * @param string $uri
+     * @return bool
+     */
+    private function isBackendUri($uri = null)
+    {
+        $uri = $this->sanitizeUri($uri);
+
+        $backendConfigData = $this->deploymentConfig->getConfigData('backend');
+        $backendPath = $backendConfigData['frontName'];
+
+        // @codingStandardsIgnoreStart
+        $uri = parse_url($uri, PHP_URL_PATH);
+        // @codingStandardsIgnoreEnd
+
+        return (strpos($uri, "/$backendPath/") === 0) || preg_match("|/$backendPath$|", $uri);
+    }
+
+    /**
+     * Get sanitized URI
+     * @param string $uri
+     * @return string
+     */
+    private function sanitizeUri($uri = null)
+    {
+        if ($uri === null) {
+            $uri = $this->request->getRequestUri();
+        }
+
+        $uri = filter_var($uri, FILTER_SANITIZE_URL);
+        $uri = preg_replace('|/+|', '/', $uri);
+        $uri = preg_replace('|^/.+?\.php|', '', $uri);
+
+        return $uri;
+    }
+
+    /**
+     * @SuppressWarnings("PHPMD.UnusedFormalParameter")
+     */
     public function aroundLaunch(AppInterface $subject, \Closure $proceed)
     {
-        if ($this->utils->isBackendUri()) {
+        if ($this->isBackendUri()) {
             if (!$this->restrict->isAllowed()) {
-                $this->event->dispatch(LogManagementInterface::EVENT_ACTIVITY, [
-                    'module' => 'MSP_AdminRestriction',
-                    'message' => 'Unauthorized access attempt',
-                ]);
+                $this->securitySuite->event(
+                    'MSP_AdminRestriction',
+                    'Unauthorized access attempt',
+                    AlertInterface::LEVEL_WARNING
+                );
 
                 $this->state->setAreaCode('frontend');
                 return $this->lockDown->doHttpLockdown(__('Unauthorized access attempt'));

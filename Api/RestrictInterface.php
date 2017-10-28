@@ -41,5 +41,5 @@ interface RestrictInterface
      * Return true if IP restriction is enabled
      * @return bool
      */
-    public function getEnabled();
+    public function isEnabled();
 }

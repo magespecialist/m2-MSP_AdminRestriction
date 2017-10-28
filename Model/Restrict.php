@@ -46,11 +46,11 @@ class Restrict implements RestrictInterface
 
     /**
      * Return true if IP is in range
-     * @param $ip
-     * @param $range
+     * @param string $ipAddress
+     * @param string $range
      * @return bool
      */
-    public function getIpInRange($ip, $range)
+    public function isIpInRange($ipAddress, $range)
     {
         if (strpos($range, '/') === false) {
             $range .= '/32';
@@ -58,7 +58,7 @@ class Restrict implements RestrictInterface
 
         list($range, $netmask) = explode('/', $range, 2);
         $rangeDecimal = ip2long($range);
-        $ipDecimal = ip2long($ip);
+        $ipDecimal = ip2long($ipAddress);
         $wildcardDecimal = pow(2, (32 - $netmask)) - 1;
         $netmaskDecimal = ~$wildcardDecimal;
 
@@ -67,14 +67,14 @@ class Restrict implements RestrictInterface
 
     /**
      * Return true if IP is matched in a range list
-     * @param $ip
+     * @param string $ipAddress
      * @param array $ranges
      * @return bool
      */
-    public function getIpIsMatched($ip, array $ranges)
+    private function isMatchingIp($ipAddress, array $ranges)
     {
         foreach ($ranges as $range) {
-            if ($this->getIpInRange($ip, $range)) {
+            if ($this->isIpInRange($ipAddress, $range)) {
                 return true;
             }
         }
@@ -96,7 +96,7 @@ class Restrict implements RestrictInterface
      * Return true if IP restriction is enabled
      * @return bool
      */
-    public function getEnabled()
+    public function isEnabled()
     {
         return (bool) $this->scopeConfig->getValue(RestrictInterface::XML_PATH_ENABLED);
     }
@@ -107,16 +107,16 @@ class Restrict implements RestrictInterface
      */
     public function isAllowed()
     {
-        if (!$this->getEnabled()) {
+        if (!$this->isEnabled()) {
             return true;
         }
 
-        $ip = $this->remoteAddress->getRemoteAddress();
+        $ipAddress = $this->remoteAddress->getRemoteAddress();
 
         $allowedRanges = $this->getAllowedRanges();
         
-        if (count($allowedRanges)) {
-            return $this->getIpIsMatched($ip, $allowedRanges);
+        if (!empty($allowedRanges)) {
+            return $this->isMatchingIp($ipAddress, $allowedRanges);
         }
 
         return true;
