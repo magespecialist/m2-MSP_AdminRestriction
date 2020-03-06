@@ -23,25 +23,31 @@ namespace MSP\AdminRestriction\Model;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use MSP\AdminRestriction\Api\RestrictInterface;
+use Psr\Log\LoggerInterface;
 
 class Restrict implements RestrictInterface
 {
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+    /**
      * @var RemoteAddress
      */
     private $remoteAddress;
-
     /**
      * @var ScopeConfigInterface
      */
     private $scopeConfig;
 
     public function __construct(
+        LoggerInterface $logger,
         RemoteAddress $remoteAddress,
         ScopeConfigInterface $scopeConfig
     ) {
         $this->remoteAddress = $remoteAddress;
         $this->scopeConfig = $scopeConfig;
+        $this->logger = $logger;
     }
 
     /**
@@ -62,7 +68,7 @@ class Restrict implements RestrictInterface
         $wildcardDecimal = pow(2, (32 - $netmask)) - 1;
         $netmaskDecimal = ~$wildcardDecimal;
 
-        return (bool) (($ipDecimal & $netmaskDecimal ) == ($rangeDecimal & $netmaskDecimal));
+        return (bool)(($ipDecimal & $netmaskDecimal) == ($rangeDecimal & $netmaskDecimal));
     }
 
     /**
@@ -74,7 +80,10 @@ class Restrict implements RestrictInterface
     private function isMatchingIp($ipAddress, array $ranges)
     {
         foreach ($ranges as $range) {
-            if ($this->isIpInRange($ipAddress, $range)) {
+            if ($this->isIpv6($ipAddress) && in_array($ipAddress, $this->getAllowedRanges(), true)) {
+                return true;
+            }
+            if ($this->isIpv4($ipAddress) && $this->isIpInRange($ipAddress, $range)) {
                 return true;
             }
         }
@@ -94,18 +103,24 @@ class Restrict implements RestrictInterface
 
     /**
      * Return true if IP restriction is enabled
-     * @return bool
      */
-    public function isEnabled()
+    public function isEnabled(): bool
     {
-        return (bool) $this->scopeConfig->getValue(RestrictInterface::XML_PATH_ENABLED);
+        return (bool)$this->scopeConfig->getValue(RestrictInterface::XML_PATH_ENABLED);
+    }
+
+    /**
+     * Return true if IP loggign is enabled.
+     */
+    public function isLoggingEnabled(): bool
+    {
+        return (bool)$this->scopeConfig->getValue(RestrictInterface::XML_PATH_ENABLE_LOG);
     }
 
     /**
      * Return true if current user is allowed to access backend
-     * @return bool
      */
-    public function isAllowed()
+    public function isAllowed(): bool
     {
         if (!$this->isEnabled()) {
             return true;
@@ -113,12 +128,28 @@ class Restrict implements RestrictInterface
 
         $ipAddress = $this->remoteAddress->getRemoteAddress();
 
+        if ($this->isLoggingEnabled()) {
+            $this->logger->debug(
+                sprintf('MSP/AdminRestriction: IP address %s is trying to access the Magento admin', $ipAddress)
+            );
+        }
+
         $allowedRanges = $this->getAllowedRanges();
-        
+
         if (!empty($allowedRanges)) {
             return $this->isMatchingIp($ipAddress, $allowedRanges);
         }
 
         return true;
+    }
+
+    private function isIpv6(string $ipAddress): bool
+    {
+        return preg_match('/([a-f0-9:]+:+)+[a-f0-9]+/', $ipAddress);
+    }
+
+    private function isIpv4(string $ipAddress): bool
+    {
+        return preg_match('/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/', $ipAddress);
     }
 }
