@@ -11,7 +11,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
-class Ipv6IPTest extends TestCase
+class IpTest extends TestCase
 {
     /**
      * @magentoConfigFixture default/msp_securitysuite_adminrestriction/general/enabled 1
@@ -40,7 +40,6 @@ class Ipv6IPTest extends TestCase
         $restricktMock = $this->getMockBuilder(Restrict::class)
             ->setConstructorArgs(
                 [
-                    Bootstrap::getObjectManager()->get(LoggerInterface::class),
                     $remoteAccessMock,
                     Bootstrap::getObjectManager()->get(ScopeConfigInterface::class)
                 ]

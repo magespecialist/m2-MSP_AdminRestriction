@@ -28,10 +28,6 @@ use Psr\Log\LoggerInterface;
 class Restrict implements RestrictInterface
 {
     /**
-     * @var LoggerInterface
-     */
-    private $logger;
-    /**
      * @var RemoteAddress
      */
     private $remoteAddress;
@@ -41,13 +37,11 @@ class Restrict implements RestrictInterface
     private $scopeConfig;
 
     public function __construct(
-        LoggerInterface $logger,
         RemoteAddress $remoteAddress,
         ScopeConfigInterface $scopeConfig
     ) {
         $this->remoteAddress = $remoteAddress;
         $this->scopeConfig = $scopeConfig;
-        $this->logger = $logger;
     }
 
     /**
@@ -110,14 +104,6 @@ class Restrict implements RestrictInterface
     }
 
     /**
-     * Return true if IP loggign is enabled.
-     */
-    public function isLoggingEnabled(): bool
-    {
-        return (bool)$this->scopeConfig->getValue(RestrictInterface::XML_PATH_ENABLE_LOG);
-    }
-
-    /**
      * Return true if current user is allowed to access backend
      */
     public function isAllowed(): bool
@@ -127,13 +113,6 @@ class Restrict implements RestrictInterface
         }
 
         $ipAddress = $this->remoteAddress->getRemoteAddress();
-
-        if ($this->isLoggingEnabled()) {
-            $this->logger->debug(
-                sprintf('MSP/AdminRestriction: IP address %s is trying to access the Magento admin', $ipAddress)
-            );
-        }
-
         $allowedRanges = $this->getAllowedRanges();
 
         if (!empty($allowedRanges)) {
