@@ -15,14 +15,15 @@ class IpTest extends TestCase
 {
     /**
      * @magentoConfigFixture default/msp_securitysuite_adminrestriction/general/enabled 1
-     * @magentoConfigFixture default/msp_securitysuite_adminrestriction/general/authorized_ranges 123.123.123.123, 2a02:a445:999a:0:d123:9024:136z:7f4f
+     * @magentoConfigFixture default/msp_securitysuite_adminrestriction/general/authorized_ranges 192.168.0.0/24, 123.123.123.123, 2a02:a445:999a:0:d123:9024:136z:7f4f
      */
     public function testDifferentIpAddresses() : void
     {
         $allowedIpv6 = '2a02:a445:999a:0:d123:9024:136z:7f4f';
         $disallowedIpv6 = '2a02:a445:999a:0:d123:9024:136z:123a';
         $allowedIpv4 = '123.123.123.123';
-        $disalloweddIpv4 = '123.123.123.127';
+        $disallowedIpv4 = '123.123.123.127';
+        $ipv4InRange = '192.168.0.10';
 
         /** @var MockObject|RemoteAddress $remoteAccessMock */
         $remoteAccessMock = $this->getMockBuilder(RemoteAddress::class)
@@ -31,9 +32,10 @@ class IpTest extends TestCase
             ->getMock();
         $remoteAccessMock->method('getRemoteAddress')->willReturnOnConsecutiveCalls(
             $allowedIpv4,
-            $disalloweddIpv4,
+            $disallowedIpv4,
             $allowedIpv6,
-            $disallowedIpv6
+            $disallowedIpv6,
+            $ipv4InRange
         );
 
         /** @var MockObject|Restrict $restricktMock */
@@ -55,5 +57,7 @@ class IpTest extends TestCase
         $this->assertTrue($restricktMock->isAllowed());
         // Ipv6 address, disallowed, not in list
         $this->assertFalse($restricktMock->isAllowed());
+        // Ipv4 range, allowed
+        $this->assertTrue($restricktMock->isEnabled());
     }
 }
